@@ -8,6 +8,7 @@ import configuration from './config/configuration';
 import { FirebaseConfigService } from './config/firebase.config';
 import { AuthModule } from './auth/auth.module';
 import { IntegrationModule } from './integration/integration.module';
+import { DeduplicationModule } from './deduplication/deduplication.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { IntegrationModule } from './integration/integration.module';
     }),
     AuthModule,
     IntegrationModule,
+    DeduplicationModule,
   ],
   controllers: [AppController],
   providers: [AppService, FirebaseConfigService],

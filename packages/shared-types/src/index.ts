@@ -7,6 +7,9 @@ export * from './integration';
 // Task-related types
 export * from './task';
 
+// Deduplication-related types
+export * from './deduplication';
+
 // Enhancement-related types
 export interface Enhancement {
   id: string;

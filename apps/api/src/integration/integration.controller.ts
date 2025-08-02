@@ -10,7 +10,6 @@ import {
   Put,
   Delete,
   Req,
-  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { IntegrationService } from './integration.service';

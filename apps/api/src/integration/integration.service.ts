@@ -38,8 +38,8 @@ export class IntegrationService {
             : null,
           expiresAt: createIntegrationData.expiresAt,
           config: createIntegrationData.config || null,
-        },
-      });
+        } as any,
+      }) as any;
 
       // Map Prisma model to shared-types interface
       const mappedIntegration: Integration = {
@@ -67,7 +67,7 @@ export class IntegrationService {
     try {
       const integration = await this.prisma.integration.findUnique({
         where: { id },
-      });
+      }) as any;
 
       if (!integration) {
         return null;
@@ -103,7 +103,7 @@ export class IntegrationService {
             provider,
           },
         },
-      });
+      }) as any;
 
       if (!integration) {
         return null;

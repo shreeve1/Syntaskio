@@ -8,10 +8,11 @@ import { CronService } from './cron.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MicrosoftModule } from './providers/microsoft/microsoft.module';
 import { ConnectWiseModule } from './providers/connectwise/connectwise.module';
+import { ProcessPlanModule } from './providers/processplan/processplan.module';
 import { TaskModule } from '../task/task.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), MicrosoftModule, ConnectWiseModule, TaskModule],
+  imports: [ScheduleModule.forRoot(), MicrosoftModule, ConnectWiseModule, ProcessPlanModule, TaskModule],
   controllers: [IntegrationController],
   providers: [IntegrationService, TaskAggregationService, EncryptionService, CronService, PrismaService],
   exports: [IntegrationService, TaskAggregationService],

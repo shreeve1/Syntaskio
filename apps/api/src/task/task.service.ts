@@ -46,6 +46,14 @@ export class TaskService {
           priority: createTaskData.priority,
           dueDate: createTaskData.dueDate,
           sourceData: createTaskData.sourceData,
+          // ConnectWise-specific fields
+          connectWiseTicketId: createTaskData.connectWiseTicketId,
+          connectWiseTicketType: createTaskData.connectWiseTicketType,
+          connectWiseBoardName: createTaskData.connectWiseBoardName,
+          connectWiseCompanyName: createTaskData.connectWiseCompanyName,
+          connectWiseProjectName: createTaskData.connectWiseProjectName,
+          connectWiseOwner: createTaskData.connectWiseOwner,
+          connectWiseAssignedTo: createTaskData.connectWiseAssignedTo,
         });
       }
 
@@ -61,8 +69,16 @@ export class TaskService {
           dueDate: createTaskData.dueDate,
           source: createTaskData.source,
           sourceData: createTaskData.sourceData,
-        },
-      });
+          // ConnectWise-specific fields
+          connectWiseTicketId: createTaskData.connectWiseTicketId,
+          connectWiseTicketType: createTaskData.connectWiseTicketType,
+          connectWiseBoardName: createTaskData.connectWiseBoardName,
+          connectWiseCompanyName: createTaskData.connectWiseCompanyName,
+          connectWiseProjectName: createTaskData.connectWiseProjectName,
+          connectWiseOwner: createTaskData.connectWiseOwner,
+          connectWiseAssignedTo: createTaskData.connectWiseAssignedTo,
+        } as any,
+      }) as any;
 
       // Map Prisma model to shared-types interface
       const mappedTask: Task = {
@@ -77,6 +93,8 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        mergedTaskId: task.mergedTaskId || null,
+        isMerged: task.isMerged || false,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       };
@@ -93,7 +111,7 @@ export class TaskService {
     try {
       const task = await this.prisma.task.findUnique({
         where: { id },
-      });
+      }) as any;
 
       if (!task) {
         return null;
@@ -112,6 +130,16 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        // ConnectWise-specific fields
+        connectWiseTicketId: task.connectWiseTicketId,
+        connectWiseTicketType: task.connectWiseTicketType as 'service' | 'project' | undefined,
+        connectWiseBoardName: task.connectWiseBoardName,
+        connectWiseCompanyName: task.connectWiseCompanyName,
+        connectWiseProjectName: task.connectWiseProjectName,
+        connectWiseOwner: task.connectWiseOwner,
+        connectWiseAssignedTo: task.connectWiseAssignedTo,
+        mergedTaskId: task.mergedTaskId,
+        isMerged: task.isMerged,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       };
@@ -128,7 +156,7 @@ export class TaskService {
       const tasks = await this.prisma.task.findMany({
         where: { integrationId },
         orderBy: { createdAt: 'desc' },
-      });
+      }) as any[];
 
       // Map Prisma models to shared-types interfaces
       const mappedTasks: Task[] = tasks.map(task => ({
@@ -143,6 +171,8 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        mergedTaskId: task.mergedTaskId,
+        isMerged: task.isMerged,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       }));
@@ -159,7 +189,7 @@ export class TaskService {
       const tasks = await this.prisma.task.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
-      });
+      }) as any[];
 
       // Map Prisma models to shared-types interfaces
       const mappedTasks: Task[] = tasks.map(task => ({
@@ -174,6 +204,8 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        mergedTaskId: task.mergedTaskId,
+        isMerged: task.isMerged,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       }));
@@ -221,7 +253,7 @@ export class TaskService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-      });
+      }) as any[];
 
       // Map Prisma models to shared-types interfaces
       const mappedTasks: Task[] = tasks.map(task => ({
@@ -236,6 +268,8 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        mergedTaskId: task.mergedTaskId,
+        isMerged: task.isMerged,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       }));
@@ -262,7 +296,7 @@ export class TaskService {
       const task = await this.prisma.task.update({
         where: { id },
         data: updateTaskData,
-      });
+      }) as any;
 
       // Map Prisma model to shared-types interface
       const mappedTask: Task = {
@@ -277,6 +311,16 @@ export class TaskService {
         dueDate: task.dueDate,
         source: task.source as 'microsoft' | 'connectwise' | 'processplan',
         sourceData: task.sourceData as object,
+        // ConnectWise-specific fields
+        connectWiseTicketId: task.connectWiseTicketId,
+        connectWiseTicketType: task.connectWiseTicketType as 'service' | 'project' | undefined,
+        connectWiseBoardName: task.connectWiseBoardName,
+        connectWiseCompanyName: task.connectWiseCompanyName,
+        connectWiseProjectName: task.connectWiseProjectName,
+        connectWiseOwner: task.connectWiseOwner,
+        connectWiseAssignedTo: task.connectWiseAssignedTo,
+        mergedTaskId: task.mergedTaskId,
+        isMerged: task.isMerged,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       };
@@ -362,6 +406,38 @@ export class TaskService {
       dueDate: microsoftTask.dueDateTime ? new Date(microsoftTask.dueDateTime.dateTime) : undefined,
       source: 'microsoft',
       sourceData: microsoftTask,
+    };
+  }
+
+  /**
+   * Transform ConnectWise task to internal format
+   * @param connectWiseTask The ConnectWise task (already transformed by ConnectWiseApiService)
+   * @param userId The user ID
+   * @param integrationId The integration ID
+   * @returns Transformed task data
+   */
+  transformConnectWiseTask(connectWiseTask: any, userId: string, integrationId: string): CreateTaskData {
+    const sourceData = connectWiseTask.sourceData || {};
+
+    return {
+      userId,
+      integrationId,
+      externalId: connectWiseTask.id,
+      title: connectWiseTask.title,
+      description: connectWiseTask.description || undefined,
+      status: connectWiseTask.status,
+      priority: connectWiseTask.priority,
+      dueDate: connectWiseTask.dueDate,
+      source: 'connectwise',
+      sourceData: connectWiseTask.sourceData,
+      // Extract ConnectWise-specific fields from sourceData
+      connectWiseTicketId: sourceData.ticketId || sourceData.taskId,
+      connectWiseTicketType: sourceData.ticketType,
+      connectWiseBoardName: sourceData.boardName,
+      connectWiseCompanyName: sourceData.companyName,
+      connectWiseProjectName: sourceData.projectName,
+      connectWiseOwner: sourceData.owner,
+      connectWiseAssignedTo: sourceData.assignedTo,
     };
   }
 }

@@ -11,50 +11,147 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(uuid()) @db.Uuid
-  email         String        @unique
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  integrations  Integration[]
-  tasks         Task[]
+  id                   String               @id @default(uuid()) @db.Uuid
+  email                String               @unique
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  integrations         Integration[]
+  tasks                Task[]
+  mergedTasks          MergedTask[]
+  reviewedDuplicates   DuplicateCandidate[]
 
   @@map("users")
 }
 
 model Integration {
-  id            String      @id @default(uuid()) @db.Uuid
-  userId        String      @map("user_id") @db.Uuid
-  provider      String
-  accessToken   String      @map("access_token")
-  refreshToken  String?     @map("refresh_token")
-  expiresAt     DateTime?   @map("expires_at") @db.Timestamptz
-  config        Json?       @db.JsonB
-  lastSyncAt    DateTime?   @map("last_sync_at") @db.Timestamptz
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz
-  user          User        @relation(fields: [userId], references: [id])
-  tasks         Task[]
+  id                String             @id @default(uuid()) @db.Uuid
+  userId            String             @map("user_id") @db.Uuid
+  provider          String
+  accessToken       String             @map("access_token")
+  refreshToken      String?            @map("refresh_token")
+  expiresAt         DateTime?          @map("expires_at") @db.Timestamptz
+  config            Json?              @db.JsonB
+  lastSyncAt        DateTime?          @map("last_sync_at") @db.Timestamptz
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime           @default(now()) @map("updated_at") @db.Timestamptz
+  user              User               @relation(fields: [userId], references: [id])
+  tasks             Task[]
+  mergedTaskSources MergedTaskSource[]
 
   @@unique([userId, provider])
   @@map("integrations")
 }
 
 model Task {
-  id            String      @id @default(uuid()) @db.Uuid
-  userId        String      @map("user_id") @db.Uuid
-  integrationId String      @map("integration_id") @db.Uuid
-  externalId    String      @map("external_id")
-  title         String
-  description   String?
-  status        String      @default("pending")
-  priority      String?
-  dueDate       DateTime?   @map("due_date") @db.Timestamptz
-  source        String
-  sourceData    Json        @map("source_data")
-  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz
-  user          User        @relation(fields: [userId], references: [id])
-  integration   Integration @relation(fields: [integrationId], references: [id])
+  id                        String      @id @default(uuid()) @db.Uuid
+  userId                    String      @map("user_id") @db.Uuid
+  integrationId             String      @map("integration_id") @db.Uuid
+  externalId                String      @map("external_id")
+  title                     String
+  description               String?
+  status                    String      @default("pending")
+  priority                  String?
+  dueDate                   DateTime?   @map("due_date") @db.Timestamptz
+  source                    String
+  sourceData                Json        @map("source_data")
+  // Merged task fields
+  mergedTaskId              String?     @map("merged_task_id") @db.Uuid
+  isMerged                  Boolean     @default(false) @map("is_merged")
+  // ConnectWise-specific fields
+  connectWiseTicketId       Int?        @map("connectwise_ticket_id")
+  connectWiseTicketType     String?     @map("connectwise_ticket_type")
+  connectWiseBoardName      String?     @map("connectwise_board_name")
+  connectWiseCompanyName    String?     @map("connectwise_company_name")
+  connectWiseProjectName    String?     @map("connectwise_project_name")
+  connectWiseOwner          String?     @map("connectwise_owner")
+  connectWiseAssignedTo     String?     @map("connectwise_assigned_to")
+  // Process Plan-specific fields
+  processPlanProcessId      String?     @map("processplan_process_id")
+  processPlanStepId         String?     @map("processplan_step_id")
+  processPlanType           String?     @map("processplan_type")
+  processPlanStatus         String?     @map("processplan_status")
+  processPlanProgress       Float?      @map("processplan_progress")
+  processPlanOrder          Int?        @map("processplan_order")
+  processPlanEstimatedDuration Int?     @map("processplan_estimated_duration")
+  processPlanDependencies   Json?       @map("processplan_dependencies")
+  processPlanTags           Json?       @map("processplan_tags")
+  processPlanAssignedTo     String?     @map("processplan_assigned_to")
+  processPlanProcessName    String?     @map("processplan_process_name")
+  processPlanTotalSteps     Int?        @map("processplan_total_steps")
+  processPlanCompletedSteps Int?        @map("processplan_completed_steps")
+  createdAt                 DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+  user                      User        @relation(fields: [userId], references: [id])
+  integration               Integration @relation(fields: [integrationId], references: [id])
+  mergedTask                MergedTask? @relation(fields: [mergedTaskId], references: [id])
+  // Relations for duplicate detection
+  duplicatesAsTask1         DuplicateCandidate[] @relation("Task1Duplicates")
+  duplicatesAsTask2         DuplicateCandidate[] @relation("Task2Duplicates")
+  mergedTaskSources         MergedTaskSource[]
 
   @@unique([integrationId, externalId])
+  @@index([mergedTaskId])
   @@map("tasks")
+}
+
+model MergedTask {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  description String?
+  status      String   @default("pending")
+  priority    String?
+  dueDate     DateTime? @map("due_date") @db.Timestamptz
+  mergedAt    DateTime @default(now()) @map("merged_at") @db.Timestamptz
+  mergedBy    String   @default("auto") @map("merged_by")
+  confidence  Float?   @db.Real
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  sources     MergedTaskSource[]
+
+  @@index([userId])
+  @@map("merged_tasks")
+}
+
+model MergedTaskSource {
+  id                  String      @id @default(uuid()) @db.Uuid
+  mergedTaskId        String      @map("merged_task_id") @db.Uuid
+  originalTaskId      String      @map("original_task_id") @db.Uuid
+  source              String
+  originalTitle       String      @map("original_title")
+  originalDescription String?     @map("original_description")
+  originalStatus      String      @map("original_status")
+  integrationId       String      @map("integration_id") @db.Uuid
+  lastSyncAt          DateTime?   @map("last_sync_at") @db.Timestamptz
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  mergedTask          MergedTask  @relation(fields: [mergedTaskId], references: [id], onDelete: Cascade)
+  originalTask        Task        @relation(fields: [originalTaskId], references: [id], onDelete: Cascade)
+  integration         Integration @relation(fields: [integrationId], references: [id])
+
+  @@index([mergedTaskId])
+  @@map("merged_task_sources")
+}
+
+model DuplicateCandidate {
+  id                    String    @id @default(uuid()) @db.Uuid
+  task1Id               String    @map("task1_id") @db.Uuid
+  task2Id               String    @map("task2_id") @db.Uuid
+  titleSimilarity       Float     @map("title_similarity") @db.Real
+  descriptionSimilarity Float     @map("description_similarity") @db.Real
+  temporalProximity     Float     @map("temporal_proximity") @db.Real
+  assigneeMatch         Float     @map("assignee_match") @db.Real
+  priorityMatch         Float     @map("priority_match") @db.Real
+  overallScore          Float     @map("overall_score") @db.Real
+  confidence            String
+  status                String    @default("pending")
+  reviewedBy            String?   @map("reviewed_by") @db.Uuid
+  reviewedAt            DateTime? @map("reviewed_at") @db.Timestamptz
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  task1                 Task      @relation("Task1Duplicates", fields: [task1Id], references: [id], onDelete: Cascade)
+  task2                 Task      @relation("Task2Duplicates", fields: [task2Id], references: [id], onDelete: Cascade)
+  reviewer              User?     @relation(fields: [reviewedBy], references: [id])
+
+  @@index([overallScore(sort: Desc)])
+  @@map("duplicate_candidates")
 }

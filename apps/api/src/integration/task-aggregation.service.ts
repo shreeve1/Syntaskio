@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { IntegrationService } from './integration.service';
 import { TaskService } from '../task/task.service';
 import { MicrosoftService } from './providers/microsoft/microsoft.service';
+import { ProcessPlanService } from './providers/processplan/processplan.service';
 import { Integration, Task } from '@syntaskio/shared-types';
 
 @Injectable()
@@ -12,6 +14,8 @@ export class TaskAggregationService {
     private readonly integrationService: IntegrationService,
     private readonly taskService: TaskService,
     private readonly microsoftService: MicrosoftService,
+    private readonly processPlanService: ProcessPlanService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   /**
@@ -53,6 +57,14 @@ export class TaskAggregationService {
       switch (integration.provider) {
         case 'microsoft':
           tasks = await this.microsoftService.fetchTasks(integration);
+          break;
+        case 'connectwise':
+          const { ConnectWiseService } = await import('./providers/connectwise/connectwise.service');
+          const connectWiseService = this.moduleRef.get(ConnectWiseService, { strict: false });
+          tasks = await connectWiseService.fetchTasks(integration);
+          break;
+        case 'processplan':
+          tasks = await this.processPlanService.fetchTasks(integration);
           break;
         // Add cases for other providers as needed
         default:
@@ -108,6 +120,12 @@ export class TaskAggregationService {
     switch (integration.provider) {
       case 'microsoft':
         return this.taskService.transformMicrosoftTask(externalTask, integration.userId, integration.id);
+      case 'connectwise':
+        // ConnectWise tasks are already transformed by the ConnectWiseApiService
+        return this.taskService.transformConnectWiseTask(externalTask, integration.userId, integration.id);
+      case 'processplan':
+        // Process Plan tasks are already transformed by the ProcessPlanApiService
+        return externalTask; // Tasks are already in the correct format
       // Add cases for other providers as needed
       default:
         throw new Error(`Unsupported provider: ${integration.provider}`);
@@ -115,35 +133,5 @@ export class TaskAggregationService {
   }
 
 
-  /**
-   * Transform Microsoft task status to internal format
-   * @param microsoftStatus The Microsoft task status
-   * @returns Internal task status
-   */
-  private transformMicrosoftTaskStatus(microsoftStatus: string): 'pending' | 'in_progress' | 'completed' {
-    switch (microsoftStatus) {
-      case 'completed':
-        return 'completed';
-      case 'inProgress':
-        return 'in_progress';
-      default:
-        return 'pending';
-    }
-  }
 
-  /**
-   * Transform Microsoft task priority to internal format
-   * @param microsoftPriority The Microsoft task priority
-   * @returns Internal task priority
-   */
-  private transformMicrosoftTaskPriority(microsoftPriority: string): 'low' | 'medium' | 'high' | undefined {
-    switch (microsoftPriority) {
-      case 'high':
-        return 'high';
-      case 'low':
-        return 'low';
-      default:
-        return 'medium';
-    }
-  }
 }

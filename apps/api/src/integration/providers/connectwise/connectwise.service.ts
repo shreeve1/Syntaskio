@@ -21,10 +21,15 @@ export class ConnectWiseService {
   async fetchTasks(integration: Integration) {
     try {
       const tasks = await this.connectWiseApiService.fetchTasks(integration);
-      this.logger.log(`Fetched ${tasks.length} tasks from ConnectWise Manage for user ${integration.userId}`);
+      this.logger.log(
+        `Fetched ${tasks.length} tasks from ConnectWise Manage for user ${integration.userId}`,
+      );
       return tasks;
     } catch (error) {
-      this.logger.error(`Failed to fetch tasks from ConnectWise Manage for user ${integration.userId}`, error);
+      this.logger.error(
+        `Failed to fetch tasks from ConnectWise Manage for user ${integration.userId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -43,7 +48,7 @@ export class ConnectWiseService {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    serverUrl: string
+    serverUrl: string,
   ) {
     try {
       const tokenData = await this.connectWiseApiService.refreshToken(
@@ -51,7 +56,7 @@ export class ConnectWiseService {
         clientId,
         clientSecret,
         redirectUri,
-        serverUrl
+        serverUrl,
       );
       this.logger.log('Successfully refreshed ConnectWise access token');
       return tokenData;
@@ -75,30 +80,39 @@ export class ConnectWiseService {
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    serverUrl: string
+    serverUrl: string,
   ) {
     try {
       const tokenUrl = `${serverUrl}/v4_6_release/apis/3.0/system/oauth/token`;
-      
+
       const response = await firstValueFrom(
-        this.httpService.post(tokenUrl, new URLSearchParams({
-          client_id: clientId,
-          scope: 'ConnectWiseManageCallback ServiceTicket ProjectTask',
-          code: code,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-          client_secret: clientSecret,
-        }), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+        this.httpService.post(
+          tokenUrl,
+          new URLSearchParams({
+            client_id: clientId,
+            scope: 'ConnectWiseManageCallback ServiceTicket ProjectTask',
+            code: code,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code',
+            client_secret: clientSecret,
+          }),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
           },
-        })
+        ),
       );
 
-      this.logger.log('Successfully exchanged code for ConnectWise access token');
+      this.logger.log(
+        'Successfully exchanged code for ConnectWise access token',
+      );
       return response.data;
     } catch (error) {
-      this.logger.error('Failed to exchange code for ConnectWise access token', error);
+      this.logger.error(
+        'Failed to exchange code for ConnectWise access token',
+        error,
+      );
       throw error;
     }
   }
@@ -111,23 +125,20 @@ export class ConnectWiseService {
   validateServerUrl(serverUrl: string): boolean {
     try {
       const url = new URL(serverUrl);
-      
+
       // Only allow HTTPS
       if (url.protocol !== 'https:') {
         return false;
       }
-      
+
       // Only allow ConnectWise API domains
-      const allowedDomains = [
-        'api.connectwisedev.com',
-        'api.connectwise.com'
-      ];
-      
+      const allowedDomains = ['api.connectwisedev.com', 'api.connectwise.com'];
+
       const hostname = url.hostname.toLowerCase();
-      return allowedDomains.some(domain => 
-        hostname === domain || hostname.endsWith(`.${domain}`)
+      return allowedDomains.some(
+        (domain) => hostname === domain || hostname.endsWith(`.${domain}`),
       );
-    } catch (error) {
+    } catch (_err) {
       this.logger.warn(`Invalid server URL format: ${serverUrl}`);
       return false;
     }

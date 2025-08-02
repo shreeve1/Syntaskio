@@ -39,9 +39,9 @@ export class MicrosoftService {
    */
   async refreshAccessToken(
     refreshToken: string,
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string
+    _clientId: string,
+    _clientSecret: string,
+    _redirectUri: string
   ) {
     try {
       const tokenData = await this.microsoftGraphService.refreshToken(refreshToken);

@@ -4,13 +4,11 @@ import { ConnectWiseAuthController } from './connectwise-auth.controller';
 import { ConnectWiseApiService } from './connectwise-api.service';
 import { HttpModule } from '@nestjs/axios';
 import { IntegrationModule } from '../../integration.module';
-import { TaskModule } from '../../../task/task.module';
-import { TaskAggregationService } from '../../task-aggregation.service';
 
 @Module({
-  imports: [HttpModule, forwardRef(() => IntegrationModule), TaskModule],
+  imports: [HttpModule, forwardRef(() => IntegrationModule)],
   controllers: [ConnectWiseAuthController],
-  providers: [ConnectWiseService, ConnectWiseApiService, TaskAggregationService],
+  providers: [ConnectWiseService, ConnectWiseApiService],
   exports: [ConnectWiseService, ConnectWiseApiService],
 })
 export class ConnectWiseModule {}
