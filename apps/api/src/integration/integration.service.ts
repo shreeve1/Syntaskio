@@ -33,10 +33,11 @@ export class IntegrationService {
           userId: createIntegrationData.userId,
           provider: createIntegrationData.provider,
           accessToken: this.encryptionService.encrypt(createIntegrationData.accessToken),
-          refreshToken: createIntegrationData.refreshToken 
-            ? this.encryptionService.encrypt(createIntegrationData.refreshToken) 
+          refreshToken: createIntegrationData.refreshToken
+            ? this.encryptionService.encrypt(createIntegrationData.refreshToken)
             : null,
           expiresAt: createIntegrationData.expiresAt,
+          config: createIntegrationData.config || null,
         },
       });
 
@@ -48,6 +49,8 @@ export class IntegrationService {
         accessToken: integration.accessToken,
         refreshToken: integration.refreshToken,
         expiresAt: integration.expiresAt,
+        config: integration.config as any,
+        lastSyncAt: integration.lastSyncAt,
         createdAt: integration.createdAt,
         updatedAt: integration.updatedAt,
       };
@@ -78,6 +81,8 @@ export class IntegrationService {
         accessToken: this.encryptionService.decrypt(integration.accessToken),
         refreshToken: integration.refreshToken ? this.encryptionService.decrypt(integration.refreshToken) : undefined,
         expiresAt: integration.expiresAt,
+        config: integration.config as any,
+        lastSyncAt: integration.lastSyncAt,
         createdAt: integration.createdAt,
         updatedAt: integration.updatedAt,
       };
@@ -112,6 +117,8 @@ export class IntegrationService {
         accessToken: this.encryptionService.decrypt(integration.accessToken),
         refreshToken: integration.refreshToken ? this.encryptionService.decrypt(integration.refreshToken) : undefined,
         expiresAt: integration.expiresAt,
+        config: integration.config as any,
+        lastSyncAt: integration.lastSyncAt,
         createdAt: integration.createdAt,
         updatedAt: integration.updatedAt,
       };

@@ -27,6 +27,8 @@ model Integration {
   accessToken   String      @map("access_token")
   refreshToken  String?     @map("refresh_token")
   expiresAt     DateTime?   @map("expires_at") @db.Timestamptz
+  config        Json?       @db.JsonB
+  lastSyncAt    DateTime?   @map("last_sync_at") @db.Timestamptz
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz
   user          User        @relation(fields: [userId], references: [id])

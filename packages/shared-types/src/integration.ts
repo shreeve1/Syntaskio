@@ -5,6 +5,13 @@ export interface Integration {
   accessToken: string; // encrypted
   refreshToken: string; // encrypted
   expiresAt: Date;
+  config?: {
+    // ConnectWise-specific configuration
+    serverUrl?: string;
+    companyId?: string;
+    memberId?: string;
+  };
+  lastSyncAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +22,11 @@ export interface CreateIntegrationData {
   accessToken: string;
   refreshToken?: string;
   expiresAt: Date;
+  config?: {
+    serverUrl?: string;
+    companyId?: string;
+    memberId?: string;
+  };
 }
 
 export interface UpdateIntegrationData {
