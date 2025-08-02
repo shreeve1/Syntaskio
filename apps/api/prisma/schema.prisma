@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  email         String        @unique
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  integrations  Integration[]
+  tasks         Task[]
+
+  @@map("users")
+}
+
+model Integration {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  provider      String
+  accessToken   String      @map("access_token")
+  refreshToken  String?     @map("refresh_token")
+  expiresAt     DateTime?   @map("expires_at") @db.Timestamptz
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+  user          User        @relation(fields: [userId], references: [id])
+  tasks         Task[]
+
+  @@unique([userId, provider])
+  @@map("integrations")
+}
+
+model Task {
+  id            String      @id @default(uuid()) @db.Uuid
+  userId        String      @map("user_id") @db.Uuid
+  integrationId String      @map("integration_id") @db.Uuid
+  externalId    String      @map("external_id")
+  title         String
+  description   String?
+  status        String      @default("pending")
+  priority      String?
+  dueDate       DateTime?   @map("due_date") @db.Timestamptz
+  source        String
+  sourceData    Json        @map("source_data")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+  user          User        @relation(fields: [userId], references: [id])
+  integration   Integration @relation(fields: [integrationId], references: [id])
+
+  @@unique([integrationId, externalId])
+  @@map("tasks")
+}
