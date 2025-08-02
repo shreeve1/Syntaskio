@@ -1,0 +1,17 @@
+{
+  "name": "@syntaskio/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types and interfaces for Syntaskio",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
